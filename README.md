@@ -2,6 +2,8 @@
 
 Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으로 보여 주는 macOS 메뉴바 앱입니다.
 
+<p align="center"><strong>Designed and built by Ara Jung · fifty UX</strong></p>
+
 <p align="center">
   <img src="preview/basic.png" width="49%" alt="기본형 선택 화면">
   <img src="preview/animals.png" width="49%" alt="동물형 선택 화면">
@@ -11,7 +13,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 수업 시연용 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
-[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.0-beta/on-air-companion-beta-v6.zip)
+[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.1-beta/on-air-companion-beta-v7.zip)
 
 <p align="center">
   <a href="https://github.com/arajung-hub/on-air-companion/releases/latest">
@@ -101,4 +103,4 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 5분 발표 순서와 시연 대본은 [PRESENTATION_SCRIPT.md](PRESENTATION_SCRIPT.md)에 정리했습니다.
 
-실제 감지 시연이 어려울 때는 [11초 백업 영상](preview/demo-fallback.mp4)으로 네 상태와 스타일 전환을 보여 줄 수 있습니다.
+실제 감지 시연이 어려울 때는 [기본형 시연 영상](preview/demo-basic.mp4)과 [동물형 시연 영상](preview/demo-animals.mp4)을 사용할 수 있습니다.

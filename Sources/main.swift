@@ -1678,9 +1678,14 @@ private final class CharacterPickerViewController: NSViewController {
         let quitButton = NSButton(title: "종료", target: self, action: #selector(quitApplication))
         quitButton.bezelStyle = .rounded
         quitButton.controlSize = .small
-        let footer = NSStackView(views: [settingsButton, spacer(), quitButton])
+        let credit = NSTextField(labelWithString: "Ara Jung · fifty UX")
+        credit.font = .systemFont(ofSize: 9, weight: .medium)
+        credit.textColor = .tertiaryLabelColor
+        credit.toolTip = "Designed and built by Ara Jung · fifty UX"
+        let footer = NSStackView(views: [settingsButton, spacer(), credit, quitButton])
         footer.orientation = .horizontal
         footer.alignment = .centerY
+        footer.spacing = 8
 
         let content = NSStackView(views: [header, styleControl, visualContainer, separator, modeTitle, sourceControl, previewControl, modeHelp, footer])
         content.orientation = .vertical
@@ -2090,8 +2095,24 @@ private func exportPreviews(to destination: String) throws {
         let picker = CharacterPickerViewController(character: .defaultCharacter, style: .basic, basicVariant: .dualTiles, kind: kind, sourceMode: .zoom, observation: observation)
         try renderView(picker.view, to: root.appendingPathComponent("picker-zoom-\(observation == .noMeeting ? "no-meeting" : "permission").png"))
     }
-    let animalPicker = CharacterPickerViewController(character: .defaultCharacter, style: .animal, basicVariant: .capsule, kind: .live, sourceMode: .demo(DeviceState(microphoneOn: true, cameraOn: true, meetingActive: true)))
-    try renderView(animalPicker.view, to: root.appendingPathComponent("picker-animal-live.png"))
+    for kind in [IndicatorKind.quiet, .microphone, .camera, .live] {
+        let state = DeviceState(
+            microphoneOn: kind.microphoneOn,
+            cameraOn: kind.cameraOn,
+            meetingActive: true
+        )
+        let animalPicker = CharacterPickerViewController(
+            character: .defaultCharacter,
+            style: .animal,
+            basicVariant: .capsule,
+            kind: kind,
+            sourceMode: .demo(state)
+        )
+        try renderView(
+            animalPicker.view,
+            to: root.appendingPathComponent("picker-animal-\(kind.filename).png")
+        )
+    }
 
     for kind in IndicatorKind.allCases {
         let view = BasicIndicatorView(
