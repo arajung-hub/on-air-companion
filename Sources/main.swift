@@ -1735,7 +1735,7 @@ private final class CharacterPickerViewController: NSViewController {
         let quitButton = NSButton(title: "종료", target: self, action: #selector(quitApplication))
         quitButton.bezelStyle = .rounded
         quitButton.controlSize = .small
-        let credit = NSTextField(labelWithString: "Ara Jung")
+        let credit = NSTextField(labelWithString: "© 2026 Ara Jung")
         credit.font = .systemFont(ofSize: 9, weight: .medium)
         credit.textColor = .tertiaryLabelColor
         credit.toolTip = "Designed and built by Ara Jung"

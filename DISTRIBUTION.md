@@ -13,7 +13,7 @@
 
 1. 저장소: [GitHub 저장소](https://github.com/arajung-hub/on-air-companion)
 2. 최신 Release: [On Air Companion beta](https://github.com/arajung-hub/on-air-companion/releases/latest)
-3. ZIP 직접 다운로드: [베타 12 압축 파일](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.5-beta/on-air-companion-beta-v12.zip)
+3. ZIP 직접 다운로드: [베타 13 압축 파일](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.6-beta/on-air-companion-beta-v13.zip)
 4. 발표용 QR 코드: [preview/downloadqr.png](preview/downloadqr.png)
 
 ## 홈페이지가 필요한 경우
