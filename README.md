@@ -25,6 +25,14 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 ## 익명 사용 통계
 
+## 발표자료
+
+[최신 발표 PPT](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/On-Air-Companion-story-v5.pptx)
+
+[웹 발표자료 ZIP](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/On-Air-Companion-web-v5.zip)
+
+## 익명 사용 통계
+
 첫 실행에서 사용자가 동의한 경우에만 앱 실행, 기본형과 동물형 선택, 캐릭터 선택을 Supabase에 익명으로 기록합니다. 이름, Zoom 회의 정보, 마이크와 카메라 상태, 음성, 영상은 수집하지 않습니다. 메뉴의 `통계 설정`에서 언제든 전송을 끌 수 있습니다.
 
 Supabase 데이터 구조와 집계 방법은 [ANALYTICS.md](ANALYTICS.md)에서 확인할 수 있습니다.
