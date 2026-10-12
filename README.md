@@ -23,8 +23,6 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 현재 베타는 Apple Silicon Mac용이며 임시 코드 서명을 사용합니다. Developer ID 서명과 Apple 공증은 적용하지 않았습니다. 설치 후 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켜야 합니다.
 
-## 익명 사용 통계
-
 ## 발표자료
 
 [최신 발표 PPT](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/On-Air-Companion-story-v5.pptx)
