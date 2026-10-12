@@ -1074,9 +1074,28 @@ final class ZoomStatusMonitor {
         let root = AXUIElementCreateApplication(zoom.processIdentifier)
         var remainingNodes = 1_200
         var labels: [String] = []
-        collectLabels(from: root, depth: 0, remainingNodes: &remainingNodes, into: &labels)
+        var preferredLabels: [String] = []
+        // Zoom's own meeting menu remains available when its toolbar is hidden.
+        var menuBarValue: CFTypeRef?
+        if AXUIElementCopyAttributeValue(root, kAXMenuBarAttribute as CFString, &menuBarValue) == .success,
+           let menuBarValue {
+            collectLabels(
+                from: unsafeBitCast(menuBarValue, to: AXUIElement.self),
+                depth: 0,
+                remainingNodes: &remainingNodes,
+                into: &labels,
+                preferredLabels: &preferredLabels
+            )
+        }
+        collectLabels(
+            from: root,
+            depth: 0,
+            remainingNodes: &remainingNodes,
+            into: &labels,
+            preferredLabels: &preferredLabels
+        )
 
-        let result = inferState(from: labels)
+        let result = inferState(from: labels, preferredLabels: preferredLabels)
         guard result.meetingActive else {
             publish(.noMeeting)
             return
@@ -1099,11 +1118,20 @@ final class ZoomStatusMonitor {
         from element: AXUIElement,
         depth: Int,
         remainingNodes: inout Int,
-        into labels: inout [String]
+        into labels: inout [String],
+        preferredLabels: inout [String]
     ) {
         guard remainingNodes > 0, depth <= 10 else { return }
         remainingNodes -= 1
 
+        func stringAttribute(_ attribute: CFString) -> String {
+            var value: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(element, attribute, &value) == .success else { return "" }
+            return value as? String ?? ""
+        }
+        let role = stringAttribute(kAXRoleAttribute as CFString)
+        let identifier = stringAttribute(kAXIdentifierAttribute as CFString)
+        let priority = labelPriority(role: role, identifier: identifier)
         let attributes: [CFString] = [
             kAXTitleAttribute as CFString,
             kAXDescriptionAttribute as CFString,
@@ -1111,12 +1139,14 @@ final class ZoomStatusMonitor {
             kAXValueAttribute as CFString,
         ]
 
-        for attribute in attributes {
+        // Gallery descriptions include other people's mute states. Never use them.
+        for attribute in priority == 0 ? [] : attributes {
             var value: CFTypeRef?
             if AXUIElementCopyAttributeValue(element, attribute, &value) == .success,
                let string = value as? String,
                !string.isEmpty {
                 labels.append(string)
+                if priority == 2 { preferredLabels.append(string) }
             }
         }
 
@@ -1135,14 +1165,20 @@ final class ZoomStatusMonitor {
                 from: child,
                 depth: depth + 1,
                 remainingNodes: &remainingNodes,
-                into: &labels
+                into: &labels,
+                preferredLabels: &preferredLabels
             )
             if remainingNodes <= 0 { break }
         }
     }
 
-    private func inferState(from rawLabels: [String]) -> DeviceState {
-        let labels = rawLabels
+    func labelPriority(role: String, identifier: String) -> Int {
+        if identifier.contains("onMuteAudio:") || identifier.contains("onMuteVideo:") { return 2 }
+        return ["AXButton", "AXCheckBox", "AXMenuItem"].contains(role) ? 1 : 0
+    }
+
+    func inferState(from rawLabels: [String], preferredLabels: [String] = []) -> DeviceState {
+        func normalized(_ source: [String]) -> [String] { source
             .map { $0.lowercased().trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { label in
                 let excluded = [
@@ -1154,6 +1190,12 @@ final class ZoomStatusMonitor {
                 ]
                 return !excluded.contains(where: label.contains)
             }
+        }
+        let labels = normalized(rawLabels)
+        let preferred = normalized(preferredLabels)
+
+        let micOnStatePatterns = ["audio unmuted", "microphone unmuted", "음소거 해제됨"]
+        let micOffStatePatterns = ["audio muted", "microphone muted", "음소거됨"]
 
         let micOffPatterns = [
             "unmute my audio",
@@ -1161,6 +1203,8 @@ final class ZoomStatusMonitor {
             "unmute microphone",
             "마이크 음소거 해제",
             "오디오 음소거 해제",
+            "join audio",
+            "오디오 참가",
         ]
         let micOnPatterns = [
             "mute my audio",
@@ -1182,23 +1226,21 @@ final class ZoomStatusMonitor {
             "카메라 끄기",
         ]
 
-        let microphone: Bool?
-        if containsAny(labels, patterns: micOffPatterns) {
-            microphone = false
-        } else if containsAny(labels, patterns: micOnPatterns) {
-            microphone = true
-        } else {
-            microphone = nil
+        func microphoneState(_ source: [String]) -> Bool? {
+            if containsAny(source, patterns: micOnStatePatterns) { return true }
+            if containsAny(source, patterns: micOffStatePatterns) { return false }
+            if containsAny(source, patterns: micOffPatterns) { return false }
+            if containsAny(source, patterns: micOnPatterns) { return true }
+            return nil
         }
+        let microphone = microphoneState(preferred) ?? microphoneState(labels)
 
-        let camera: Bool?
-        if containsAny(labels, patterns: cameraOffPatterns) {
-            camera = false
-        } else if containsAny(labels, patterns: cameraOnPatterns) {
-            camera = true
-        } else {
-            camera = nil
+        func cameraState(_ source: [String]) -> Bool? {
+            if containsAny(source, patterns: cameraOffPatterns) { return false }
+            if containsAny(source, patterns: cameraOnPatterns) { return true }
+            return nil
         }
+        let camera = cameraState(preferred) ?? cameraState(labels)
 
         let meetingActive = microphone != nil || camera != nil
         return DeviceState(
@@ -2196,7 +2238,43 @@ private func exportPreviews(to destination: String) throws {
     }
 }
 
+if CommandLine.arguments.contains("--self-test") {
+    let monitor = ZoomStatusMonitor()
+    let cases: [([String], [String], DeviceState)] = [
+        (["Unmute Audio", "Start Video"], [], .quiet),
+        (["Mute Audio", "Start Video"], [], DeviceState(microphoneOn: true, cameraOn: false, meetingActive: true)),
+        (["Unmute Audio", "Stop Video"], [], DeviceState(microphoneOn: false, cameraOn: true, meetingActive: true)),
+        (["Mute Audio", "Stop Video"], [], DeviceState(microphoneOn: true, cameraOn: true, meetingActive: true)),
+        (["컴퓨터 오디오 음소거 해제됨", "비디오 시작"], [], DeviceState(microphoneOn: true, cameraOn: false, meetingActive: true)),
+        (["컴퓨터 오디오 음소거됨", "비디오 중지"], [], DeviceState(microphoneOn: false, cameraOn: true, meetingActive: true)),
+        (["다른 사람, 컴퓨터 오디오 음소거 해제됨", "비디오 중지"], ["오디오 음소거 해제", "비디오 중지"], DeviceState(microphoneOn: false, cameraOn: true, meetingActive: true)),
+        (["다른 사람, 컴퓨터 오디오 음소거됨", "비디오 시작"], ["오디오 음소거", "비디오 시작"], DeviceState(microphoneOn: true, cameraOn: false, meetingActive: true)),
+        (["오디오 음소거 해제", "비디오 시작", "모두 음소거 해제"], [], .quiet),
+        ([], [], DeviceState(microphoneOn: false, cameraOn: false, meetingActive: false)),
+    ]
+    var passed = true
+    for (index, test) in cases.enumerated() {
+        let actual = monitor.inferState(from: test.0, preferredLabels: test.1)
+        if actual != test.2 { print("FAIL case \(index + 1): \(actual)"); passed = false }
+    }
+    if monitor.labelPriority(role: "AXUnknown", identifier: "") != 0 { passed = false }
+    if monitor.labelPriority(role: "AXStaticText", identifier: "") != 0 { passed = false }
+    if monitor.labelPriority(role: "AXMenuItem", identifier: "onMuteAudio:") != 2 { passed = false }
+    print(passed ? "PASS all 13 microphone, camera, and participant-isolation regressions" : "FAIL regressions")
+    exit(passed ? EXIT_SUCCESS : EXIT_FAILURE)
+}
+
 let application = NSApplication.shared
+
+if CommandLine.arguments.contains("--diagnose-once") {
+    let monitor = ZoomStatusMonitor()
+    monitor.onObservation = { observation in
+        print(String(describing: observation))
+        exit(EXIT_SUCCESS)
+    }
+    monitor.start()
+    RunLoop.main.run()
+}
 
 if let exportFlagIndex = CommandLine.arguments.firstIndex(of: "--export-previews"),
    CommandLine.arguments.indices.contains(exportFlagIndex + 1) {
