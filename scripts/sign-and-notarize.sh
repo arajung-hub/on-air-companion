@@ -120,7 +120,9 @@ codesign --verify --strict "$candidate_dmg"
 
 # A distributable filename is created only after both Apple checks succeeded.
 mkdir -p "$release_dir"
-cp "$candidate_dmg" "$final_dmg"
+[[ ! -e "$final_dmg" ]] || die "Release appeared while Apple was processing; preserve it and choose a new version."
+cp -n "$candidate_dmg" "$final_dmg"
+cmp -s "$candidate_dmg" "$final_dmg" || die "Release output differs from the verified candidate."
 shasum -a 256 "$final_dmg"
 print "Signed and notarized release prepared: $final_dmg"
 print "Test a fresh download on another Mac before publishing."
