@@ -27,10 +27,10 @@
 
 ## 배포 준비
 
-1. [ ] GitHub 저장소 만들기
+1. [x] GitHub 저장소 만들기
 2. [x] README에 대표 화면 추가
-3. [ ] GitHub Release에 ZIP 첨부
-4. [ ] 다운로드 링크 또는 QR 코드 준비
+3. [x] GitHub Release에 ZIP 첨부
+4. [x] 다운로드 링크와 QR 코드 준비
 5. [ ] 필요하면 GitHub Pages 소개 화면 만들기
 
 GitHub Pages는 필수 작업에서 제외합니다. 저장소 README와 Release 링크로 수업 공유에 필요한 범위를 충족합니다.
