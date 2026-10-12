@@ -53,8 +53,7 @@ where event_name = 'app_open';
 with latest_style as (
   select distinct on (install_id) install_id, style
   from public.analytics_events
-  where event_name in ('app_open', 'style_selected')
-    and style in ('basic', 'animal')
+  where style in ('basic', 'animal')
   order by install_id, created_at desc, id desc
 )
 select
@@ -66,7 +65,7 @@ group by style
 order by installs desc;
 ```
 
-설치 ID마다 마지막으로 수신한 스타일을 한 번씩 집계합니다. 기본형과 동물형을 여러 번 바꿔도 한 설치는 한쪽에만 포함됩니다. 사람 수와 정확히 같지는 않으며, 통계 전송을 끈 뒤의 변경 사항은 반영되지 않습니다.
+설치 ID마다 마지막으로 수신한 스타일을 한 번씩 집계합니다. 동물이나 기본형 종류를 직접 선택해 스타일이 바뀐 기록도 포함합니다. 기본형과 동물형을 여러 번 바꿔도 한 설치는 한쪽에만 포함됩니다. 사람 수와 정확히 같지는 않으며, 통계 전송을 끈 뒤의 변경 사항은 반영되지 않습니다.
 
 기본형과 동물형 선택 횟수:
 
