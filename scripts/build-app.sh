@@ -37,7 +37,7 @@ swiftc \
   -framework ApplicationServices \
   -framework QuartzCore \
   -module-cache-path "$module_cache_dir" \
-  "$project_dir/Sources/main.swift" \
+  "$project_dir"/Sources/*.swift \
   -o "$macos_dir/OnAirCompanion"
 
 cp "$project_dir/Resources/Info.plist" "$contents_dir/Info.plist"

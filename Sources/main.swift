@@ -54,11 +54,6 @@ enum MonitorObservation: Equatable {
     case state(DeviceState)
 }
 
-enum SourceMode: Equatable {
-    case zoom
-    case demo(DeviceState)
-}
-
 enum VisualStyle: String, Equatable {
     case basic
     case animal
@@ -1550,7 +1545,7 @@ private final class StatusBadgeView: NSView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(kind: IndicatorKind, sourceMode: SourceMode, observation: MonitorObservation) {
+    func update(kind: IndicatorKind, observation: MonitorObservation) {
         let presentation: (String, NSColor)
         switch kind {
         case .quiet:
@@ -1565,11 +1560,13 @@ private final class StatusBadgeView: NSView {
             presentation = ("접근성 권한 필요", NSColor(hex: 0xe5992b))
         }
 
-        switch sourceMode {
-        case .demo:
-            textLabel.stringValue = "미리보기 · \(presentation.0)"
-        case .zoom:
-            textLabel.stringValue = observation == .noMeeting ? "Zoom 회의 없음" : "Zoom · \(presentation.0)"
+        switch observation {
+        case .noMeeting:
+            textLabel.stringValue = "Zoom 회의 없음"
+        case .permissionNeeded:
+            textLabel.stringValue = "접근성 권한 필요"
+        case .state:
+            textLabel.stringValue = "Zoom · \(presentation.0)"
         }
         textLabel.textColor = presentation.1
         dotView.layer?.backgroundColor = presentation.1.cgColor
@@ -1581,17 +1578,15 @@ private final class CharacterPickerViewController: NSViewController {
     var onSelectCharacter: ((CharacterProfile) -> Void)?
     var onSelectStyle: ((VisualStyle) -> Void)?
     var onSelectBasicVariant: ((BasicVariant) -> Void)?
-    var onSelectMode: ((SourceMode) -> Void)?
     var onOpenAccessibility: (() -> Void)?
+    var onOpenAnalyticsSettings: (() -> Void)?
     var onQuit: (() -> Void)?
 
     private var selectedCharacter: CharacterProfile
     private var selectedStyle: VisualStyle
     private var selectedBasicVariant: BasicVariant
     private var currentKind: IndicatorKind
-    private var sourceMode: SourceMode
     private var observation: MonitorObservation
-    private var lastDemoState = DeviceState(microphoneOn: true, cameraOn: true, meetingActive: true)
     private var choiceButtons: [CharacterChoiceButton] = []
     private var basicButtons: [BasicChoiceButton] = []
     private let statusBadge = StatusBadgeView()
@@ -1599,19 +1594,16 @@ private final class CharacterPickerViewController: NSViewController {
     private let visualContainer = NSView()
     private let animalRows = NSStackView()
     private let basicRows = NSStackView()
-    private let sourceControl = NSSegmentedControl(labels: ["Zoom 실제 감지", "미리보기"], trackingMode: .selectOne, target: nil, action: nil)
-    private let previewControl = NSSegmentedControl(labels: ["모두 꺼짐", "마이크만 켜짐", "카메라만 켜짐", "둘 다 켜짐"], trackingMode: .selectOne, target: nil, action: nil)
     private let modeHelp = NSTextField(wrappingLabelWithString: "")
 
-    init(character: CharacterProfile, style: VisualStyle, basicVariant: BasicVariant, kind: IndicatorKind, sourceMode: SourceMode, observation: MonitorObservation = .noMeeting) {
+    init(character: CharacterProfile, style: VisualStyle, basicVariant: BasicVariant, kind: IndicatorKind, observation: MonitorObservation = .noMeeting) {
         selectedCharacter = character
         selectedStyle = style
         selectedBasicVariant = basicVariant
         currentKind = kind
-        self.sourceMode = sourceMode
         self.observation = observation
         super.init(nibName: nil, bundle: nil)
-        preferredContentSize = NSSize(width: 540, height: 548)
+        preferredContentSize = NSSize(width: 540, height: 458)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -1671,15 +1663,8 @@ private final class CharacterPickerViewController: NSViewController {
         }
 
         configure(styleControl, action: #selector(selectStyle(_:)))
-        configure(sourceControl, action: #selector(selectSource(_:)))
-        configure(previewControl, action: #selector(selectPreview(_:)))
         styleControl.setWidth(238, forSegment: 0)
         styleControl.setWidth(238, forSegment: 1)
-        sourceControl.setWidth(238, forSegment: 0)
-        sourceControl.setWidth(238, forSegment: 1)
-        for index in 0..<previewControl.segmentCount { previewControl.setWidth(113, forSegment: index) }
-        sourceControl.toolTip = "실제 Zoom 상태를 읽거나, 가상 상태로 표시 모양을 확인합니다."
-        previewControl.toolTip = "미리보기 상태입니다. 실제 Zoom 장치를 제어하지 않습니다."
 
         visualContainer.translatesAutoresizingMaskIntoConstraints = false
         visualContainer.addSubview(animalRows)
@@ -1694,9 +1679,6 @@ private final class CharacterPickerViewController: NSViewController {
 
         let separator = NSBox()
         separator.boxType = .separator
-        let modeTitle = NSTextField(labelWithString: "상태 확인 방식")
-        modeTitle.font = .systemFont(ofSize: 11, weight: .semibold)
-        modeTitle.textColor = .secondaryLabelColor
         modeHelp.font = .systemFont(ofSize: 11)
         modeHelp.textColor = .secondaryLabelColor
         modeHelp.translatesAutoresizingMaskIntoConstraints = false
@@ -1705,6 +1687,9 @@ private final class CharacterPickerViewController: NSViewController {
         let settingsButton = NSButton(title: "접근성 설정", target: self, action: #selector(openAccessibility))
         settingsButton.bezelStyle = .rounded
         settingsButton.controlSize = .small
+        let analyticsButton = NSButton(title: "통계 설정", target: self, action: #selector(openAnalyticsSettings))
+        analyticsButton.bezelStyle = .rounded
+        analyticsButton.controlSize = .small
         let quitButton = NSButton(title: "종료", target: self, action: #selector(quitApplication))
         quitButton.bezelStyle = .rounded
         quitButton.controlSize = .small
@@ -1712,12 +1697,12 @@ private final class CharacterPickerViewController: NSViewController {
         credit.font = .systemFont(ofSize: 9, weight: .medium)
         credit.textColor = .tertiaryLabelColor
         credit.toolTip = "Designed and built by Ara Jung"
-        let footer = NSStackView(views: [settingsButton, spacer(), credit, quitButton])
+        let footer = NSStackView(views: [settingsButton, analyticsButton, spacer(), credit, quitButton])
         footer.orientation = .horizontal
         footer.alignment = .centerY
         footer.spacing = 8
 
-        let content = NSStackView(views: [header, styleControl, visualContainer, separator, modeTitle, sourceControl, previewControl, modeHelp, footer])
+        let content = NSStackView(views: [header, styleControl, visualContainer, separator, modeHelp, footer])
         content.orientation = .vertical
         content.alignment = .leading
         content.spacing = 10
@@ -1729,10 +1714,10 @@ private final class CharacterPickerViewController: NSViewController {
             content.topAnchor.constraint(equalTo: root.topAnchor, constant: 18),
             content.bottomAnchor.constraint(lessThanOrEqualTo: root.bottomAnchor, constant: -16),
         ])
-        for child in [header, styleControl, visualContainer, separator, sourceControl, previewControl, modeHelp, footer] {
+        for child in [header, styleControl, visualContainer, separator, modeHelp, footer] {
             child.widthAnchor.constraint(equalTo: content.widthAnchor).isActive = true
         }
-        refresh(character: selectedCharacter, style: selectedStyle, basicVariant: selectedBasicVariant, kind: currentKind, sourceMode: sourceMode, observation: observation)
+        refresh(character: selectedCharacter, style: selectedStyle, basicVariant: selectedBasicVariant, kind: currentKind, observation: observation)
     }
 
     private func spacer() -> NSView {
@@ -1748,12 +1733,11 @@ private final class CharacterPickerViewController: NSViewController {
         control.translatesAutoresizingMaskIntoConstraints = false
     }
 
-    func refresh(character: CharacterProfile, style: VisualStyle, basicVariant: BasicVariant, kind: IndicatorKind, sourceMode: SourceMode, observation: MonitorObservation) {
+    func refresh(character: CharacterProfile, style: VisualStyle, basicVariant: BasicVariant, kind: IndicatorKind, observation: MonitorObservation) {
         selectedCharacter = character
         selectedStyle = style
         selectedBasicVariant = basicVariant
         currentKind = kind
-        self.sourceMode = sourceMode
         self.observation = observation
         guard isViewLoaded else { return }
 
@@ -1769,27 +1753,15 @@ private final class CharacterPickerViewController: NSViewController {
         styleControl.selectedSegment = style == .basic ? 0 : 1
         basicRows.isHidden = style != .basic
         animalRows.isHidden = style != .animal
-        statusBadge.update(kind: kind, sourceMode: sourceMode, observation: observation)
+        statusBadge.update(kind: kind, observation: observation)
 
-        switch sourceMode {
-        case .zoom:
-            sourceControl.selectedSegment = 0
-            previewControl.isEnabled = false
-            previewControl.selectedSegment = -1
-            switch observation {
-            case .noMeeting:
-                modeHelp.stringValue = "Zoom 회의가 감지되면 표시기가 나타나요.\n미리보기에서 네 가지 상태를 먼저 확인할 수 있어요."
-            case .permissionNeeded:
-                modeHelp.stringValue = "Zoom 상태를 읽으려면 접근성 권한이 필요해요.\n아래의 접근성 설정에서 권한을 켜 주세요."
-            case .state:
-                modeHelp.stringValue = "실제 Zoom 회의 상태를 표시하고 있어요.\n이 앱은 마이크와 카메라를 직접 켜거나 끄지 않아요."
-            }
-        case .demo(let state):
-            lastDemoState = state
-            sourceControl.selectedSegment = 1
-            previewControl.isEnabled = true
-            previewControl.selectedSegment = state.microphoneOn ? (state.cameraOn ? 3 : 1) : (state.cameraOn ? 2 : 0)
-            modeHelp.stringValue = "가상 상태로 표시 모양을 확인하고 있어요. 실제 Zoom 상태와 무관해요.\n상태 버튼은 Zoom의 마이크나 카메라를 켜지 않아요."
+        switch observation {
+        case .noMeeting:
+            modeHelp.stringValue = "Zoom 회의가 시작되면 표시기가 자동으로 나타나요.\n상태를 읽으려면 접근성 권한을 켜 주세요."
+        case .permissionNeeded:
+            modeHelp.stringValue = "Zoom 상태를 읽으려면 접근성 권한이 필요해요.\n아래의 접근성 설정에서 권한을 켜 주세요."
+        case .state:
+            modeHelp.stringValue = "현재 Zoom 회의의 마이크와 카메라 상태를 표시하고 있어요.\n이 앱은 두 장치를 직접 켜거나 끄지 않아요."
         }
     }
 
@@ -1797,22 +1769,15 @@ private final class CharacterPickerViewController: NSViewController {
     @objc private func selectBasicVariant(_ sender: BasicChoiceButton) { onSelectBasicVariant?(sender.variant) }
     @objc private func selectStyle(_ sender: NSSegmentedControl) { onSelectStyle?(sender.selectedSegment == 0 ? .basic : .animal) }
 
-    @objc private func selectSource(_ sender: NSSegmentedControl) {
-        onSelectMode?(sender.selectedSegment == 0 ? .zoom : .demo(lastDemoState))
-    }
-
-    @objc private func selectPreview(_ sender: NSSegmentedControl) {
-        let state = DeviceState(microphoneOn: sender.selectedSegment == 1 || sender.selectedSegment == 3, cameraOn: sender.selectedSegment == 2 || sender.selectedSegment == 3, meetingActive: true)
-        onSelectMode?(.demo(state))
-    }
-
     @objc private func openAccessibility() { onOpenAccessibility?() }
+    @objc private func openAnalyticsSettings() { onOpenAnalyticsSettings?() }
     @objc private func quitApplication() { onQuit?() }
 }
 
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let monitor = ZoomStatusMonitor()
+    private let analytics = AnonymousAnalytics.shared
     private var selectedCharacter: CharacterProfile
     private var visualStyle: VisualStyle
     private var basicVariant: BasicVariant
@@ -1822,7 +1787,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         basicVariant: basicVariant
     )
     private var statusItem: NSStatusItem?
-    private var sourceMode: SourceMode = .zoom
     private var currentKind: IndicatorKind = .quiet
     private var currentObservation: MonitorObservation = .noMeeting
     private var statusAnimationTimer: Timer?
@@ -1844,6 +1808,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         configureStatusItem()
         configureMonitor()
         applyLaunchArguments()
+        configureAnalytics()
     }
 
     private func configureStatusItem() {
@@ -1871,7 +1836,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             style: visualStyle,
             basicVariant: basicVariant,
             kind: currentKind,
-            sourceMode: sourceMode,
             observation: currentObservation
         )
         controller.onSelectCharacter = { [weak self] character in
@@ -1883,11 +1847,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         controller.onSelectBasicVariant = { [weak self] variant in
             self?.selectBasicVariant(variant)
         }
-        controller.onSelectMode = { [weak self] mode in
-            self?.setMode(mode)
-        }
         controller.onOpenAccessibility = { [weak self] in
             self?.monitor.openAccessibilitySettings()
+        }
+        controller.onOpenAnalyticsSettings = { [weak self] in
+            self?.presentAnalyticsSettings()
         }
         controller.onQuit = {
             NSApp.terminate(nil)
@@ -1910,7 +1874,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func configureMonitor() {
         monitor.onObservation = { [weak self] observation in
             DispatchQueue.main.async {
-                guard let self, self.sourceMode == .zoom else { return }
+                guard let self else { return }
                 self.currentObservation = observation
                 switch observation {
                 case .noMeeting:
@@ -1962,17 +1926,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             basicVariant = variant
             UserDefaults.standard.set(variant.rawValue, forKey: "companion.basic.variant")
         }
-        if argumentSet.contains("--demo-mic") {
-            setMode(.demo(DeviceState(microphoneOn: true, cameraOn: false, meetingActive: true)))
-        } else if argumentSet.contains("--demo-camera") {
-            setMode(.demo(DeviceState(microphoneOn: false, cameraOn: true, meetingActive: true)))
-        } else if argumentSet.contains("--demo-live") {
-            setMode(.demo(DeviceState(microphoneOn: true, cameraOn: true, meetingActive: true)))
-        } else if argumentSet.contains("--demo-quiet") {
-            setMode(.demo(.quiet))
-        } else {
-            setMode(.zoom)
-        }
+        currentKind = .quiet
+        currentObservation = .noMeeting
+        panelController.hidePanel()
+        monitor.start()
         updateStatusIcon()
 
         if argumentSet.contains("--show-picker") {
@@ -1980,28 +1937,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self?.showPicker()
             }
         }
-    }
-
-    private func setMode(_ mode: SourceMode) {
-        sourceMode = mode
-        switch mode {
-        case .zoom:
-            currentKind = .quiet
-            currentObservation = .noMeeting
-            panelController.hidePanel()
-            monitor.start()
-        case .demo(let state):
-            monitor.stop()
-            currentKind = IndicatorKind(state: state)
-            panelController.show(
-                currentKind,
-                style: visualStyle,
-                character: selectedCharacter,
-                basicVariant: basicVariant
-            )
-        }
-        refreshPicker()
-        updateStatusIcon()
     }
 
     private func updateStatusIcon() {
@@ -2018,11 +1953,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             )
             button.image?.accessibilityDescription = "\(selectedCharacter.displayName), \(currentKind.filename)"
         }
-        let statusDescription: String
-        switch sourceMode {
-        case .demo: statusDescription = "미리보기 · \(currentKind.displayName)"
-        case .zoom: statusDescription = currentObservation == .noMeeting ? "Zoom 회의 없음" : "Zoom · \(currentKind.displayName)"
-        }
+        let statusDescription = currentObservation == .noMeeting ? "Zoom 회의 없음" : "Zoom · \(currentKind.displayName)"
         button.toolTip = "On Air Companion · \(visualStyle == .basic ? basicVariant.displayName : selectedCharacter.displayName) · \(statusDescription)"
     }
 
@@ -2032,7 +1963,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             style: visualStyle,
             basicVariant: basicVariant,
             kind: currentKind,
-            sourceMode: sourceMode,
             observation: currentObservation
         )
     }
@@ -2045,6 +1975,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController.setPresentation(style: visualStyle, character: character, basicVariant: basicVariant)
         refreshPicker()
         updateStatusIcon()
+        analytics.track(.characterSelected, style: VisualStyle.animal.rawValue, selection: character.id)
     }
 
     private func selectVisualStyle(_ style: VisualStyle) {
@@ -2053,6 +1984,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController.setPresentation(style: style, character: selectedCharacter, basicVariant: basicVariant)
         refreshPicker()
         updateStatusIcon()
+        let selection = style == .basic ? basicVariant.rawValue : selectedCharacter.id
+        analytics.track(.styleSelected, style: style.rawValue, selection: selection)
     }
 
     @objc private func togglePicker() {
@@ -2071,6 +2004,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController.setPresentation(style: .basic, character: selectedCharacter, basicVariant: variant)
         refreshPicker()
         updateStatusIcon()
+        analytics.track(.basicVariantSelected, style: VisualStyle.basic.rawValue, selection: variant.rawValue)
+    }
+
+    private func configureAnalytics() {
+        guard analytics.isConfigured, !analytics.isSuppressed else { return }
+
+        if analytics.consent == true {
+            trackAppOpen()
+            return
+        }
+
+        guard analytics.consent == nil else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            self?.presentInitialAnalyticsConsent()
+        }
+    }
+
+    private func trackAppOpen() {
+        let selection = visualStyle == .basic ? basicVariant.rawValue : selectedCharacter.id
+        analytics.track(.appOpen, style: visualStyle.rawValue, selection: selection)
+    }
+
+    private func presentInitialAnalyticsConsent() {
+        NSApp.activate(ignoringOtherApps: true)
+        let alert = NSAlert()
+        alert.messageText = "익명 사용 통계를 보낼까요?"
+        alert.informativeText = "앱 실행과 선택한 표시 스타일만 수집해요. 이름, Zoom 회의 정보, 마이크와 카메라 상태는 수집하지 않아요. 통계 설정에서 언제든 바꿀 수 있어요."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "보내기")
+        alert.addButton(withTitle: "보내지 않기")
+
+        let enabled = alert.runModal() == .alertFirstButtonReturn
+        analytics.setConsent(enabled)
+        if enabled { trackAppOpen() }
+    }
+
+    private func presentAnalyticsSettings() {
+        guard analytics.isConfigured else {
+            let alert = NSAlert()
+            alert.messageText = "통계 연결 준비 중"
+            alert.informativeText = "Supabase 프로젝트가 연결되면 이 설정을 사용할 수 있어요."
+            alert.addButton(withTitle: "확인")
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
+            return
+        }
+
+        let currentlyEnabled = analytics.consent == true
+        let alert = NSAlert()
+        alert.messageText = "익명 사용 통계"
+        alert.informativeText = currentlyEnabled
+            ? "현재 익명 통계를 보내고 있어요. 이름과 Zoom 회의 정보는 수집하지 않아요."
+            : "현재 익명 통계를 보내지 않고 있어요. 앱 실행과 선택한 표시 스타일만 수집할 수 있어요."
+        alert.addButton(withTitle: currentlyEnabled ? "통계 보내기 끄기" : "통계 보내기 켜기")
+        alert.addButton(withTitle: "취소")
+
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        analytics.setConsent(!currentlyEnabled)
+        if !currentlyEnabled { trackAppOpen() }
     }
 
     private func showPicker() {
@@ -2117,12 +2110,12 @@ private func exportPreviews(to destination: String) throws {
 
     for kind in [IndicatorKind.quiet, .microphone, .camera, .live] {
         let state = DeviceState(microphoneOn: kind.microphoneOn, cameraOn: kind.cameraOn, meetingActive: true)
-        let picker = CharacterPickerViewController(character: .defaultCharacter, style: .basic, basicVariant: .capsule, kind: kind, sourceMode: .demo(state))
+        let picker = CharacterPickerViewController(character: .defaultCharacter, style: .basic, basicVariant: .capsule, kind: kind, observation: .state(state))
         try renderView(picker.view, to: root.appendingPathComponent("picker-basic-\(kind.filename).png"))
     }
     for observation in [MonitorObservation.noMeeting, .permissionNeeded] {
         let kind: IndicatorKind = observation == .noMeeting ? .quiet : .permissionNeeded
-        let picker = CharacterPickerViewController(character: .defaultCharacter, style: .basic, basicVariant: .dualTiles, kind: kind, sourceMode: .zoom, observation: observation)
+        let picker = CharacterPickerViewController(character: .defaultCharacter, style: .basic, basicVariant: .dualTiles, kind: kind, observation: observation)
         try renderView(picker.view, to: root.appendingPathComponent("picker-zoom-\(observation == .noMeeting ? "no-meeting" : "permission").png"))
     }
     for kind in [IndicatorKind.quiet, .microphone, .camera, .live] {
@@ -2136,7 +2129,7 @@ private func exportPreviews(to destination: String) throws {
             style: .animal,
             basicVariant: .capsule,
             kind: kind,
-            sourceMode: .demo(state)
+            observation: .state(state)
         )
         try renderView(
             animalPicker.view,

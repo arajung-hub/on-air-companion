@@ -13,7 +13,7 @@
 
 1. 저장소: [GitHub 저장소](https://github.com/arajung-hub/on-air-companion)
 2. 최신 Release: [On Air Companion beta](https://github.com/arajung-hub/on-air-companion/releases/latest)
-3. ZIP 직접 다운로드: [베타 9 압축 파일](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.3-beta/on-air-companion-beta-v9.zip)
+3. ZIP 직접 다운로드: [베타 10 압축 파일](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.4-beta/on-air-companion-beta-v10.zip)
 4. 발표용 QR 코드: [preview/downloadqr.png](preview/downloadqr.png)
 
 ## 홈페이지가 필요한 경우
@@ -28,5 +28,7 @@ GitHub Pages에 짧은 소개 화면을 만들 수 있습니다. 문제 상황, 
 2. 앱을 보조 클릭한 뒤 열기를 선택합니다.
 3. 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켭니다.
 4. 앱을 다시 실행합니다.
+
+첫 실행에서는 익명 통계 전송 여부를 묻습니다. 동의하지 않아도 Zoom 상태 감지와 표시 기능은 그대로 사용할 수 있습니다.
 
 더 넓게 공개하려면 Apple Developer ID 서명과 공증 절차를 추가하는 편이 좋습니다.

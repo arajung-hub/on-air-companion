@@ -13,7 +13,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 수업 시연용 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
-[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.3-beta/on-air-companion-beta-v9.zip)
+[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.4-beta/on-air-companion-beta-v10.zip)
 
 <p align="center">
   <a href="https://github.com/arajung-hub/on-air-companion/releases/latest">
@@ -22,6 +22,12 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 </p>
 
 현재 베타는 Apple Silicon Mac을 대상으로 하며 임시 코드 서명을 사용합니다. 설치 후 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켜야 합니다.
+
+## 익명 사용 통계
+
+첫 실행에서 사용자가 동의한 경우에만 앱 실행, 기본형과 동물형 선택, 캐릭터 선택을 Supabase에 익명으로 기록합니다. 이름, Zoom 회의 정보, 마이크와 카메라 상태, 음성, 영상은 수집하지 않습니다. 메뉴의 `통계 설정`에서 언제든 전송을 끌 수 있습니다.
+
+Supabase 데이터 구조와 집계 방법은 [ANALYTICS.md](ANALYTICS.md)에서 확인할 수 있습니다.
 
 ## 프로젝트 배경
 
@@ -53,7 +59,7 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 앱은 Zoom Workplace의 접근성 버튼 이름을 읽어 상태를 판별합니다. 실제 음성과 영상 내용은 읽거나 저장하지 않습니다. Zoom 회의가 없으면 떠 있는 표시기는 자동으로 숨고 메뉴바 아이콘만 남습니다.
 
-설정 화면의 상태 확인 방식에서 `Zoom 실제 감지`와 `미리보기`를 따로 고릅니다. 미리보기에서는 모두 꺼짐, 마이크만 켜짐, 카메라만 켜짐, 둘 다 켜짐을 선택할 수 있습니다. 상단 상태 배지에도 미리보기임을 표시합니다. 이 버튼은 실제 Zoom의 마이크와 카메라를 제어하지 않습니다. 실제 감지에서 회의가 없거나 접근성 권한이 필요한 경우에는 각각의 안내가 표시됩니다.
+최종 앱은 Zoom 실제 감지만 사용합니다. 회의가 없거나 접근성 권한이 필요한 경우에는 선택 화면 상단에 현재 상황을 표시합니다. 앱은 Zoom의 마이크와 카메라를 직접 켜거나 끄지 않습니다.
 
 ## 첫 실행
 
@@ -69,25 +75,7 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 ./scripts/build-app.sh
 ```
 
-## 데모
-
-기본형 전체 켜짐:
-
-```bash
-./build/On\ Air\ Companion.app/Contents/MacOS/OnAirCompanion --demo-live --style basic --show-picker
-```
-
-기본형 모양은 `--basic-variant`로도 고를 수 있습니다. 식별자는 `capsule`, `dual-tiles`, `icon-bar`, `status-ring`입니다.
-
-동물형 전체 켜짐:
-
-```bash
-./build/On\ Air\ Companion.app/Contents/MacOS/OnAirCompanion --demo-live --style animal --character maltese --show-picker
-```
-
-사용 가능한 캐릭터 식별자는 `capybara`, `hamster`, `maltese`, `teal-dragon`, `siamese-cat`, `fox`, `lop-rabbit`, `duck`, `axolotl`, `penguin`, `turtle`, `seal`입니다.
-
-## 미리보기 내보내기
+## 발표 자료용 화면 내보내기
 
 ```bash
 ./build/On\ Air\ Companion.app/Contents/MacOS/OnAirCompanion --export-previews ./preview
@@ -103,4 +91,4 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 5분 발표 순서와 시연 대본은 [PRESENTATION_SCRIPT.md](PRESENTATION_SCRIPT.md)에 정리했습니다.
 
-실제 감지 시연이 어려울 때는 [기본형 시연 영상](preview/demo-basic.mp4)과 [동물형 시연 영상](preview/demo-animals.mp4)을 사용할 수 있습니다.
+발표 전에는 접근성 권한을 다시 확인하고, 실제 Zoom 회의에서 네 가지 상태를 짧게 녹화해 예비 자료로 준비합니다.
