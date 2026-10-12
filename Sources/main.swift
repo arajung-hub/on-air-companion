@@ -1380,6 +1380,9 @@ private func makeCharacterThumbnail(
 
 private final class CharacterChoiceButton: NSButton {
     let character: CharacterProfile
+    private var thumbnail: NSImage?
+
+    override var isFlipped: Bool { true }
 
     var isChosen: Bool = false {
         didSet { updateAppearance() }
@@ -1388,18 +1391,12 @@ private final class CharacterChoiceButton: NSButton {
     init(character: CharacterProfile) {
         self.character = character
         super.init(frame: .zero)
-        title = character.displayName
-        image = makeCharacterThumbnail(character)
-        imagePosition = .imageAbove
-        imageScaling = .scaleProportionallyDown
+        title = ""
+        thumbnail = makeCharacterThumbnail(character)
         isBordered = false
-        bezelStyle = .regularSquare
-        font = .systemFont(ofSize: 11, weight: .medium)
-        alignment = .center
+        setButtonType(.momentaryPushIn)
         focusRingType = .none
         wantsLayer = true
-        layer?.cornerRadius = 12
-        layer?.masksToBounds = true
         translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             widthAnchor.constraint(equalToConstant: 84),
@@ -1413,18 +1410,51 @@ private final class CharacterChoiceButton: NSButton {
     }
 
     func update(kind: IndicatorKind) {
-        image = makeCharacterThumbnail(character, kind: kind)
+        thumbnail = makeCharacterThumbnail(character, kind: kind)
+        needsDisplay = true
         setAccessibilityLabel("\(character.displayName), \(kind.displayName)")
     }
 
     private func updateAppearance() {
-        layer?.backgroundColor = isChosen
-            ? NSColor.controlAccentColor.withAlphaComponent(0.13).cgColor
-            : NSColor.labelColor.withAlphaComponent(0.035).cgColor
-        layer?.borderWidth = isChosen ? 2 : 1
-        layer?.borderColor = isChosen
-            ? NSColor.controlAccentColor.cgColor
-            : NSColor.separatorColor.withAlphaComponent(0.42).cgColor
+        needsDisplay = true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let card = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 12, yRadius: 12)
+        let fill: NSColor
+        if isHighlighted {
+            fill = NSColor.controlAccentColor.withAlphaComponent(isChosen ? 0.16 : 0.07)
+        } else {
+            fill = isChosen
+                ? NSColor.controlAccentColor.withAlphaComponent(0.13)
+                : NSColor.controlBackgroundColor.withAlphaComponent(0.96)
+        }
+        fill.setFill()
+        card.fill()
+
+        (isChosen ? NSColor.controlAccentColor : NSColor.separatorColor.withAlphaComponent(0.78)).setStroke()
+        card.lineWidth = isChosen ? 2 : 1
+        card.stroke()
+
+        if let thumbnail {
+            let imageArea = NSRect(x: 8, y: 7, width: bounds.width - 16, height: 42)
+            thumbnail.draw(
+                in: aspectFit(imageSize: thumbnail.size, in: imageArea),
+                from: .zero,
+                operation: .sourceOver,
+                fraction: 1,
+                respectFlipped: true,
+                hints: [.interpolation: NSImageInterpolation.high]
+            )
+        }
+
+        drawCenteredText(
+            character.displayName,
+            in: NSRect(x: 5, y: 55, width: bounds.width - 10, height: 16),
+            size: 11,
+            weight: .semibold,
+            color: .labelColor
+        )
     }
 }
 
@@ -1678,10 +1708,10 @@ private final class CharacterPickerViewController: NSViewController {
         let quitButton = NSButton(title: "종료", target: self, action: #selector(quitApplication))
         quitButton.bezelStyle = .rounded
         quitButton.controlSize = .small
-        let credit = NSTextField(labelWithString: "Ara Jung · fifty UX")
+        let credit = NSTextField(labelWithString: "Ara Jung · FIFTY UX")
         credit.font = .systemFont(ofSize: 9, weight: .medium)
         credit.textColor = .tertiaryLabelColor
-        credit.toolTip = "Designed and built by Ara Jung · fifty UX"
+        credit.toolTip = "Designed and built by Ara Jung · FIFTY UX"
         let footer = NSStackView(views: [settingsButton, spacer(), credit, quitButton])
         footer.orientation = .horizontal
         footer.alignment = .centerY
