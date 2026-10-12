@@ -13,7 +13,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 수업 시연용 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
-[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.4-beta/on-air-companion-beta-v10.zip)
+[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.1.4-beta/on-air-companion-beta-v11.zip)
 
 <p align="center">
   <a href="https://github.com/arajung-hub/on-air-companion/releases/latest">
