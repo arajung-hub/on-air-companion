@@ -13,7 +13,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
-[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.6-beta/on-air-companion-beta-v13.zip)
+[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/on-air-companion-beta-v14.zip)
 
 <p align="center">
   <a href="https://github.com/arajung-hub/on-air-companion/releases/latest">
@@ -43,13 +43,15 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 꺼진 장치는 어두운 배경과 빗금으로, 켜진 마이크는 산호색, 켜진 카메라는 보라색으로 구분합니다. 상태 캡슐에서 둘 다 켜진 경우에는 빨간색을 사용합니다.
 
-메뉴바에는 상태마다 macOS 표준 아이콘 하나만 표시합니다. 모두 꺼짐은 확인, 마이크 켜짐은 마이크, 카메라 켜짐은 카메라, 둘 다 켜짐은 녹화, 권한 필요는 경고 아이콘입니다.
+기본형 메뉴바는 마이크와 카메라를 나란히 표시합니다. 마이크 꺼짐은 회색 점 세 개, 켜짐은 움직이는 산호색 파동입니다. 카메라 꺼짐은 회색 빈 원, 켜짐은 빨간 점입니다. 권한이 필요하면 원 안에 느낌표를 표시합니다.
 
 ### 동물형
 
 카피바라, 햄스터, 말티즈, 청록 용공룡, 샴고양이, 여우, 롭이어 토끼, 오리, 아홀로틀, 펭귄, 거북이, 물범 중 하나를 고를 수 있습니다. 꺼짐 상태에서는 눈을 감고 쉬며 마이크나 카메라가 켜지면 눈을 뜹니다. 카메라가 켜지면 빨간 점이 움직이고, 마이크가 켜지면 산호색 파동이 움직입니다.
 
 두 스타일은 같은 Zoom 감지 로직을 사용합니다. 런처에서 스타일을 바꾸면 떠 있는 표시기와 메뉴바 아이콘이 함께 바뀌며 선택값은 다음 실행에도 유지됩니다.
+
+동물형 메뉴바에는 선택한 동물이 표시되며, 카메라 빨간 점과 마이크 파동이 함께 움직입니다.
 
 ## 앱 아이콘
 

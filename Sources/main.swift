@@ -1269,7 +1269,7 @@ private func makeCharacterIcon(
     character: CharacterProfile,
     kind: IndicatorKind,
     phase: CGFloat = 0,
-    size: NSSize = NSSize(width: 31, height: 19)
+    size: NSSize = NSSize(width: 32, height: 20)
 ) -> NSImage {
     let result = NSImage(size: size, flipped: false) { rect in
         NSGraphicsContext.saveGraphicsState()
@@ -1356,27 +1356,51 @@ private func makeCharacterIcon(
 private func makeBasicStatusIcon(
     kind: IndicatorKind,
     phase: CGFloat = 0,
-    size: NSSize = NSSize(width: 18, height: 18)
+    size: NSSize = NSSize(width: 32, height: 20)
 ) -> NSImage {
-    let symbolName: String
-    switch kind {
-    case .quiet:
-        symbolName = "checkmark.circle"
-    case .microphone:
-        symbolName = "mic.fill"
-    case .camera:
-        symbolName = "video.fill"
-    case .live:
-        symbolName = "record.circle.fill"
-    case .permissionNeeded:
-        symbolName = "exclamationmark.triangle.fill"
-    }
+    let result = NSImage(size: size, flipped: false) { _ in
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        let offColor = NSColor(hex: 0x969ba1)
 
-    let configuration = NSImage.SymbolConfiguration(pointSize: 15, weight: .semibold)
-    let source = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
-    let result = source?.withSymbolConfiguration(configuration) ?? NSImage(size: size)
-    result.size = size
-    result.isTemplate = true
+        // Microphone: three resting dots or three softly moving coral bars.
+        if kind.microphoneOn {
+            NSColor(hex: 0xff7965).setFill()
+            let baseline: CGFloat = 4.0
+            let restingHeights: [CGFloat] = [7.1, 14.0, 10.0]
+            for index in 0..<3 {
+                let motion = sin(phase * 2.3 + CGFloat(index) * 0.55) * 0.55
+                let height = restingHeights[index] + motion
+                let bar = NSRect(x: 1.1 + CGFloat(index) * 4.4, y: baseline, width: 2.9, height: height)
+                NSBezierPath(roundedRect: bar, xRadius: 1.45, yRadius: 1.45).fill()
+            }
+        } else {
+            offColor.setFill()
+            for index in 0..<3 {
+                NSBezierPath(ovalIn: NSRect(x: 1.0 + CGFloat(index) * 4.4, y: 4.0, width: 2.9, height: 2.9)).fill()
+            }
+        }
+
+        // Camera: a hollow ring when off, a solid red dot when on.
+        let cameraRect = NSRect(x: 20.4, y: 5.1, width: 10.2, height: 10.2)
+        let circle = NSBezierPath(ovalIn: cameraRect)
+        if kind == .permissionNeeded {
+            NSColor(hex: 0xe5992b).setFill()
+            circle.fill()
+            NSColor.white.setFill()
+            NSBezierPath(roundedRect: NSRect(x: 24.85, y: 9.8, width: 1.3, height: 3.6), xRadius: 0.65, yRadius: 0.65).fill()
+            NSBezierPath(ovalIn: NSRect(x: 24.8, y: 7.2, width: 1.4, height: 1.4)).fill()
+        } else if kind.cameraOn {
+            NSColor(hex: 0xf04452).setFill()
+            circle.fill()
+        } else {
+            offColor.setStroke()
+            circle.lineWidth = 1.3
+            circle.stroke()
+        }
+        return true
+    }
+    result.isTemplate = false
     return result
 }
 
@@ -1854,7 +1878,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureStatusItem() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: 44)
+        item.autosaveName = "OnAirCompanion.MenuBar"
+        item.isVisible = true
         if let button = item.button {
             button.imagePosition = .imageOnly
             button.toolTip = "On Air Companion"
@@ -1986,14 +2012,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let phase = CGFloat(Date().timeIntervalSince(statusAnimationStart))
         if visualStyle == .basic {
             button.image = makeBasicStatusIcon(kind: currentKind, phase: phase)
-            button.image?.accessibilityDescription = "기본형, \(currentKind.filename)"
+            button.image?.accessibilityDescription = "On Air Companion, 기본형, \(currentKind.displayName)"
         } else {
             button.image = makeCharacterIcon(
                 character: selectedCharacter,
                 kind: currentKind,
                 phase: phase
             )
-            button.image?.accessibilityDescription = "\(selectedCharacter.displayName), \(currentKind.filename)"
+            button.image?.accessibilityDescription = "On Air Companion, \(selectedCharacter.displayName), \(currentKind.displayName)"
         }
         let statusDescription = currentObservation == .noMeeting ? "Zoom 회의 없음" : "Zoom · \(currentKind.displayName)"
         button.toolTip = "On Air Companion · \(visualStyle == .basic ? basicVariant.displayName : selectedCharacter.displayName) · \(statusDescription)"

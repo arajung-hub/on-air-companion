@@ -33,6 +33,7 @@ fi
 
 swiftc \
   -O \
+  -target arm64-apple-macos13.0 \
   -framework AppKit \
   -framework ApplicationServices \
   -framework QuartzCore \
