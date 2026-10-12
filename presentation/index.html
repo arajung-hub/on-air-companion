@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#F6F1E8">
+  <meta name="description" content="Zoom 마이크와 카메라 상태를 알려 주는 상시 표시형 알림. 정아라의 Generative AI and UX 미니 프로젝트.">
+  <title>On Air Companion — Mini Project</title>
+  <link rel="stylesheet" href="viewer.css">
+  <script defer src="deck-data.js"></script>
+  <script defer src="viewer.js"></script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="brand"><a class="wordmark" href="#intro">On Air Companion</a><span class="project-type">미니 과제</span></div>
+    <nav aria-label="프로젝트 링크">
+      <a class="resource-link" id="githubLink" href="https://github.com/arajung-hub/on-air-companion" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="resource-link" id="releaseLink" href="https://github.com/arajung-hub/on-air-companion/releases/latest" target="_blank" rel="noopener">Release <span aria-hidden="true">↗</span></a>
+      <a class="resource-link" id="supabaseLink" href="https://supabase.com/dashboard/project/xhtjhqbdupltzmpdvuut/editor" target="_blank" rel="noopener">Supabase <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main id="viewport" aria-label="프로젝트 발표">
+    <div id="stage"></div>
+  </main>
+  <footer class="controls">
+    <div class="current-section"><button id="outlineButton" type="button" aria-label="목차 열기">목차</button><span id="sectionTitle">소개</span><span class="keyboard-hint">방향키로 이동</span></div>
+    <nav id="dots" aria-label="슬라이드 선택"></nav>
+    <div class="page-controls">
+      <span id="counter" aria-live="polite">01 / 11</span>
+      <button id="previousButton" type="button" aria-label="이전 슬라이드">←</button>
+      <button id="nextButton" type="button" aria-label="다음 슬라이드">→</button>
+      <button id="fullscreenButton" type="button">전체 화면</button>
+    </div>
+  </footer>
+  <dialog id="outlineDialog" aria-labelledby="outlineTitle">
+    <div class="dialog-heading"><h2 id="outlineTitle">발표 목차</h2><button id="outlineClose" type="button">닫기</button></div>
+    <ol id="outlineList"></ol>
+  </dialog>
+  <dialog id="videoDialog" aria-labelledby="videoTitle">
+    <div class="dialog-heading"><h2 id="videoTitle">초기 시각 데모</h2><button id="videoClose" type="button">닫기</button></div>
+    <video id="videoPlayer" controls playsinline preload="metadata"></video>
+    <div class="video-caption"><span>초기 시각 데모 영상입니다. 실제 Zoom 감지는 설치된 앱으로 시연합니다.</span><a id="videoDownload" download>영상 받기</a></div>
+  </dialog>
+  <noscript>JavaScript를 켜면 발표 자료를 확인할 수 있습니다.</noscript>
+</body>
+</html>
