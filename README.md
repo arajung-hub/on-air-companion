@@ -11,7 +11,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 ## 다운로드
 
-수업 시연용 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
+최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
 [On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.6-beta/on-air-companion-beta-v13.zip)
 
@@ -21,7 +21,7 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
   </a>
 </p>
 
-현재 베타는 Apple Silicon Mac을 대상으로 하며 임시 코드 서명을 사용합니다. 설치 후 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켜야 합니다.
+현재 베타는 Apple Silicon Mac용이며 임시 코드 서명을 사용합니다. Developer ID 서명과 Apple 공증은 적용하지 않았습니다. 설치 후 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켜야 합니다.
 
 ## 익명 사용 통계
 
@@ -75,20 +75,4 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 ./scripts/build-app.sh
 ```
 
-## 발표 자료용 화면 내보내기
-
-```bash
-./build/On\ Air\ Companion.app/Contents/MacOS/OnAirCompanion --export-previews ./preview
-```
-
-기본형 네 가지의 상태별 이미지, 기본형과 동물형 선택 화면, 실제 감지 안내 화면, 메뉴바 아이콘, 동물별 상태를 각각 내보냅니다.
-
-## 현재 범위
-
-현재 배포 파일은 Apple Silicon Mac용 수업 발표 베타입니다. 앱에는 임시 코드 서명이 적용되어 있습니다. 공개 배포용 Developer ID 서명과 Apple 공증은 포함하지 않았습니다.
-
-배포 준비는 [DISTRIBUTION.md](DISTRIBUTION.md), 과제 진행 상태는 [PROJECT_CHECKLIST.md](PROJECT_CHECKLIST.md)에서 확인할 수 있습니다.
-
-5분 발표 순서와 시연 대본은 [PRESENTATION_SCRIPT.md](PRESENTATION_SCRIPT.md)에 정리했습니다.
-
-발표 전에는 접근성 권한을 다시 확인하고, 실제 Zoom 회의에서 네 가지 상태를 짧게 녹화해 예비 자료로 준비합니다.
+개발용 화면 이미지 생성 방법은 [DEVELOPMENT.md](DEVELOPMENT.md)에서 확인할 수 있습니다.
