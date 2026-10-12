@@ -1,0 +1,6 @@
+.DS_Store
+build/
+*.zip
+*.log
+preview/ui-v2/
+preview/ui-v3/
