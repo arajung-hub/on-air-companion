@@ -70,3 +70,37 @@ Zoom 데스크톱 앱에서 회의에 들어간 뒤 마이크와 카메라 상�
 현재 빌드로 DMG 만들기: `zsh ./scripts/package-beta-dmg.sh`
 
 일반 배포를 위한 Developer ID 서명과 Apple 공증은 별도 작업으로 남아 있습니다.
+
+### 서명과 공증 준비
+
+현재 공개된 베타에는 아직 Developer ID 서명과 공증을 적용하지 않았습니다. 아래 절차는 그다음 배포를 위한 준비입니다.
+
+1. 본인 Apple 계정으로 [Apple Developer Program](https://developer.apple.com/programs/enroll/)에 가입합니다. 연회비, 본인 확인, 약관 동의와 결제는 계정 소유자가 직접 진행해야 합니다.
+2. 멤버십 활성화 후 [Developer ID Application 인증서](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)를 발급하고 개인 키와 함께 Mac 키체인에 설치합니다.
+3. 터미널에서 아래 명령을 직접 실행해 공증용 인증 정보를 키체인에 저장합니다. Apple 계정 암호나 앱 전용 암호를 채팅, GitHub 또는 소스 파일에 넣지 않습니다.
+
+```bash
+xcrun notarytool store-credentials on-air-companion
+```
+
+이 명령은 필요한 계정 정보를 대화형으로 묻습니다. 키체인 프로파일 이름은 별칭이며 암호가 아닙니다.
+
+4. 인증서 이름과 프로파일 별칭을 설정하고 준비 상태만 확인합니다. 아래 인증서 이름은 예시이므로 키체인의 정확한 이름으로 바꿉니다.
+
+```bash
+OAC_SIGNING_IDENTITY='Developer ID Application: 본인 이름 (TEAM_ID)' \
+OAC_NOTARY_PROFILE='on-air-companion' \
+zsh scripts/sign-and-notarize.sh --check
+```
+
+5. 확인이 끝난 뒤 같은 설정으로 `--run`을 실행합니다.
+
+```bash
+OAC_SIGNING_IDENTITY='Developer ID Application: 본인 이름 (TEAM_ID)' \
+OAC_NOTARY_PROFILE='on-air-companion' \
+zsh scripts/sign-and-notarize.sh --run
+```
+
+이 스크립트는 실행 중인 앱이나 응용 프로그램 폴더의 앱을 변경하지 않습니다. 별도 복사본을 서명하고, Apple 공증 결과가 Accepted인 경우에만 티켓을 붙여 배포용 DMG를 만듭니다. 인증서나 인증 정보가 없으면 작업을 중단합니다. 공증이 지연되면 저장된 제출 ID로 상태를 확인하며 같은 파일을 중복 제출하지 않습니다.
+
+스크립트의 문법과 인증서가 없는 경우의 중단 동작은 확인했습니다. 실제 서명과 Apple 제출 단계는 멤버십, 인증서와 인증 정보가 준비된 뒤 검증해야 합니다. 공증 통과 후에도 다른 Mac에서 새로 다운로드해 설치와 Zoom 감지를 확인해야 합니다. [Apple 공증 절차](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)

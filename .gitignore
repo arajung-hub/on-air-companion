@@ -2,5 +2,11 @@
 build/
 *.zip
 *.log
+*.dmg
+*.p12
+*.pfx
+*.p8
+*.certSigningRequest
+notary-credentials*
 preview/ui-v2/
 preview/ui-v3/
