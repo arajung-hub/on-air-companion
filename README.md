@@ -13,7 +13,9 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
 
 최신 베타는 [GitHub Releases](https://github.com/arajung-hub/on-air-companion/releases/latest)에서 받을 수 있습니다.
 
-[On Air Companion 베타 ZIP 바로 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/on-air-companion-beta-v14.zip)
+[Mac용 베타 설치 파일 받기 (DMG)](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/On-Air-Companion-0.4.7-beta-macOS.dmg)
+
+[기존 ZIP 파일 받기](https://github.com/arajung-hub/on-air-companion/releases/download/v0.4.7-beta/on-air-companion-beta-v14.zip)
 
 <p align="center">
   <a href="https://github.com/arajung-hub/on-air-companion/releases/latest">
@@ -21,7 +23,9 @@ Zoom 회의 중 마이크와 카메라 상태를 기본형 또는 동물형으�
   </a>
 </p>
 
-현재 베타는 Apple Silicon Mac용이며 임시 코드 서명을 사용합니다. Developer ID 서명과 Apple 공증은 적용하지 않았습니다. 설치 후 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켜야 합니다.
+Apple Silicon Mac과 macOS 13 이상을 대상으로 만든 수업용 베타입니다. Intel Mac과 Windows는 지원하지 않습니다. 다른 Mac에서의 설치와 사용은 추가 검증 중입니다.
+
+Developer ID 서명과 Apple 공증이 없어서 첫 실행이 차단될 수 있습니다. 경고 없이 바로 실행되는 정식 배포본은 아직 준비하지 못했습니다. 출처를 신뢰하는 사용자만 직접 실행 여부를 결정해 주세요. [첫 실행과 접근성 설정 안내](DISTRIBUTION.md)를 확인한 뒤 설치해 주세요.
 
 ## 발표자료
 
@@ -37,7 +41,7 @@ Supabase 데이터 구조와 집계 방법은 [ANALYTICS.md](ANALYTICS.md)에서
 
 ## 프로젝트 배경
 
-Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했던 경험에서 시작했습니다. 작은 상태 표시기가 사용자의 주의를 얼마나 빠르게 환기할 수 있는지 살펴보기 위해, 같은 감지 로직에 정보 중심의 기본형과 감정적인 동물형을 적용했습니다.
+Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했던 경험에서 시작했습니다. 작은 알림창으로 상태를 더 잘 알아차릴 수 있는지 살펴보기 위해, 같은 감지 로직에 기본형과 동물형을 적용했습니다.
 
 ## 표시 스타일
 
@@ -55,7 +59,7 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 카피바라, 햄스터, 말티즈, 청록 용공룡, 샴고양이, 여우, 롭이어 토끼, 오리, 아홀로틀, 펭귄, 거북이, 물범 중 하나를 고를 수 있습니다. 꺼짐 상태에서는 눈을 감고 쉬며 마이크나 카메라가 켜지면 눈을 뜹니다. 카메라가 켜지면 빨간 점이 움직이고, 마이크가 켜지면 산호색 파동이 움직입니다.
 
-두 스타일은 같은 Zoom 감지 로직을 사용합니다. 런처에서 스타일을 바꾸면 떠 있는 표시기와 메뉴바 아이콘이 함께 바뀌며 선택값은 다음 실행에도 유지됩니다.
+두 스타일은 같은 Zoom 감지 로직을 사용합니다. 런처에서 스타일을 바꾸면 알림창과 메뉴바 아이콘이 함께 바뀌며 선택값은 다음 실행에도 유지됩니다.
 
 동물형 메뉴바에는 선택한 동물이 표시되며, 카메라 빨간 점과 마이크 파동이 함께 움직입니다.
 
@@ -65,17 +69,17 @@ Zoom 회의에서 마이크가 켜진 사실을 놓치고 개인 대화를 했�
 
 ## 감지 방식
 
-앱은 Zoom Workplace의 접근성 버튼 이름을 읽어 상태를 판별합니다. 실제 음성과 영상 내용은 읽거나 저장하지 않습니다. Zoom 회의가 없으면 떠 있는 표시기는 자동으로 숨고 메뉴바 아이콘만 남습니다.
+앱은 Zoom Workplace의 접근성 버튼 이름을 읽어 상태를 판별합니다. 실제 음성과 영상 내용은 읽거나 저장하지 않습니다. Zoom 회의가 없으면 알림창은 자동으로 숨고 메뉴바 아이콘만 남습니다.
 
 최종 앱은 Zoom 실제 감지만 사용합니다. 회의가 없거나 접근성 권한이 필요한 경우에는 선택 화면 상단에 현재 상황을 표시합니다. 앱은 Zoom의 마이크와 카메라를 직접 켜거나 끄지 않습니다.
 
 ## 첫 실행
 
-1. `On Air Companion.app`을 응용 프로그램 폴더로 옮깁니다.
-2. 앱을 실행하고 메뉴바의 상태 아이콘을 누릅니다.
-3. 기본형 또는 동물형을 고릅니다.
-4. 시스템 설정의 개인정보 보호 및 보안에서 접근성 권한을 켭니다.
-5. 앱을 다시 실행하고 Zoom 회의에 들어갑니다.
+1. DMG를 열고 `On Air Companion.app`을 `Applications`로 끌어 옮깁니다.
+2. Finder의 응용 프로그램 폴더에서 앱을 실행합니다. 첫 실행이 차단되면 [설치 안내](DISTRIBUTION.md)를 확인합니다.
+3. 시스템 설정에서 이 앱의 접근성 권한을 켭니다. 목록에 없으면 응용 프로그램 폴더의 앱을 추가합니다.
+4. 앱을 종료하고 다시 실행합니다.
+5. 메뉴바 아이콘에서 기본형 또는 동물형을 고른 뒤 Zoom 회의에서 상태를 확인합니다.
 
 ## 빌드
 
